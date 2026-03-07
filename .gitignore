@@ -1,0 +1,11 @@
+# 忽略模型文件
+models/*.pth
+models/*.pt
+*.pth
+*.pt
+
+# 可根据需要忽略其他临时文件或大文件
+*.log
+*.cache
+__pycache__/
+*.pyc

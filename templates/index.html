@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>智能数据聊天助手</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --sidebar-bg: #f8f9fa;
+            --sidebar-hover: #e9ecef;
+            --sidebar-active: #0d6efd;
+        }
+        
+        body {
+            padding-top: 20px;
+            background-color: #f5f7fa;
+        }
+        
+        .layout-container {
+            display: flex;
+            gap: 20px;
+            min-height: 80vh;
+        }
+        
+        /* 左侧会话面板 */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 15px;
+        }
+        
+        .new-session-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .new-session-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .session-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .session-item {
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .session-item:hover {
+            background-color: var(--sidebar-hover);
+        }
+        
+        .session-item.active {
+            background-color: var(--sidebar-active);
+            color: white;
+        }
+        
+        .session-item.active:hover {
+            background-color: #0b5ed7;
+        }
+        
+        .session-title {
+            font-weight: 500;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 3px;
+        }
+        
+        .session-time {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+        
+        .session-delete {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            color: #dc3545;
+        }
+        
+        .session-item:hover .session-delete {
+            opacity: 1;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-container {
+            flex: 1;
+            border: 1px solid #ced4da;
+            border-radius: 10px;
+            padding: 15px;
+            background-color: white;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            height: 500px;
+        }
+        
+        .message {
+            margin-bottom: 12px;
+            padding: 12px 15px;
+            border-radius: 14px;
+            max-width: 80%;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+        
+        .user-msg {
+            background-color: #e3f2fd;
+            margin-left: auto;
+            text-align: right;
+        }
+        
+        .bot-msg {
+            background-color: #f1f8e9;
+            margin-right: auto;
+        }
+        
+        .role-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-bottom: 2px;
+            font-weight: 500;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .input-area input {
+            flex: 3;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .preview-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .table-responsive {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        table {
+            font-size: 13px;
+        }
+        
+        table th {
+            background-color: #f8f9fa;
+            position: sticky;
+            top: 0;
+        }
+        
+        @media (max-width: 992px) {
+            .layout-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                order: 2;
+            }
+            
+            .main-content {
+                order: 1;
+            }
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="container py-3">
+    <h1 class="text-center mb-4">
+        <i class="fas fa-robot me-2"></i>智能数据聊天助手
+    </h1>
+
+    <div class="layout-container">
+        <!-- 左侧会话面板 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>会话记录</h5>
+                <button class="btn new-session-btn" onclick="window.location.href='/new_session'">
+                    <i class="fas fa-plus me-1"></i>新建
+                </button>
+            </div>
+            
+            <div class="session-list">
+                {% for sess in sessions %}
+                <div class="session-item {% if sess.id == current_session_id %}active{% endif %}" 
+                     onclick="switchSession('{{ sess.id }}')">
+                    <div class="session-title">{{ sess.title }}</div>
+                    <div class="session-time">{{ sess.created_at }}</div>
+                    <button class="btn btn-sm session-delete" 
+                            onclick="event.stopPropagation(); deleteSession('{{ sess.id }}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                {% endfor %}
+                
+                {% if not sessions %}
+                <div class="text-center text-muted py-3">
+                    <i class="fas fa-inbox fa-2x mb-2"></i>
+                    <p class="mb-0">暂无会话记录</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 对话历史 -->
+            <div class="chat-container" id="chatBox">
+                {% for msg in conversation %}
+                <div class="message {% if msg.role == 'user' %}user-msg{% else %}bot-msg{% endif %}">
+                    <div class="role-label">
+                        <i class="{% if msg.role == 'user' %}fas fa-user{% else %}fas fa-robot{% endif %} me-1"></i>
+                        {% if msg.role == 'user' %}👤 用户{% else %}🤖 助手{% endif %}
+                    </div>
+                    <div>{{ msg.text | safe }}</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 文字输入区 -->
+            <form method="POST" class="input-area">
+                <input type="text" name="message" class="form-control" placeholder="输入你的消息..." autocomplete="off">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane me-1"></i>发送
+                </button>
+            </form>
+
+            <!-- 操作按钮 -->
+            <div class="action-buttons">
+                <form method="POST" style="display:inline;">
+                    <input type="hidden" name="clear_chat" value="1">
+                    <button type="submit" class="btn btn-outline-secondary">
+                        <i class="fas fa-trash-alt me-1"></i>清除聊天
+                    </button>
+                </form>
+                
+                <!-- 上传文件表单 -->
+                <form id="uploadForm" method="POST" enctype="multipart/form-data" style="display:inline;">
+                    <label for="fileInput" class="btn btn-success">
+                        <i class="fas fa-file-upload me-1"></i>上传文件
+                        <input type="file" id="fileInput" name="file" accept=".csv,.xlsx,.xls" style="display:none">
+                    </label>
+                </form>
+
+                <form id="uploadImageForm" method="POST" enctype="multipart/form-data" style="display:inline;">
+                    <label for="imageInput" class="btn btn-info">
+                        <i class="fas fa-image me-1"></i>上传图片
+                        <input type="file" id="imageInput" name="file" accept="image/*" style="display:none">
+                    </label>
+                </form>
+            </div>
+
+            <!-- Flash 错误消息 -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>{{ messages[0] }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 自动滚动到底部
+        const chatBox = document.getElementById('chatBox');
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 切换会话
+        function switchSession(sessionId) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.style.display = 'none';
+            
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'switch_session';
+            input.value = '1';
+            
+            const sessionIdInput = document.createElement('input');
+            sessionIdInput.type = 'hidden';
+            sessionIdInput.name = 'session_id';
+            sessionIdInput.value = sessionId;
+            
+            form.appendChild(input);
+            form.appendChild(sessionIdInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        // 删除会话
+        function deleteSession(sessionId) {
+            if (confirm('确定要删除这个会话吗？')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.style.display = 'none';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'delete_session';
+                input.value = '1';
+                
+                const sessionIdInput = document.createElement('input');
+                sessionIdInput.type = 'hidden';
+                sessionIdInput.name = 'session_id';
+                sessionIdInput.value = sessionId;
+                
+                form.appendChild(input);
+                form.appendChild(sessionIdInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // 文件上传处理
+        document.getElementById('fileInput').addEventListener('change', function() {
+            if (this.files.length > 0) {
+                document.getElementById('uploadForm').submit();
+            }
+        });
+
+        document.getElementById('imageInput').addEventListener('change', function() {
+            if (this.files.length > 0) {
+                document.getElementById('uploadImageForm').submit();
+            }
+        });
+
+        // 点击空白区域隐藏删除按钮
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.session-delete')) {
+                document.querySelectorAll('.session-delete').forEach(btn => {
+                    btn.style.opacity = '0';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
