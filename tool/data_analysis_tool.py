@@ -1,7 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import json
+from langchain_core.tools import tool
 
+@tool
 def describe_data(filepath:str) -> str:
     """
     生成路径为filepath的csv文件的统计描述
@@ -19,6 +21,7 @@ def describe_data(filepath:str) -> str:
     except Exception as e:
         return f'分析失败：{e}'
 
+@tool
 def handle_missing(df):
     """
     处理缺失值（填充0）
@@ -31,7 +34,7 @@ def handle_missing(df):
     """
     return df.fillna(0)
 
-
+@tool
 def plot_bar(df, x_col, y_col, title):
     """
     绘制柱状图
@@ -49,7 +52,7 @@ def plot_bar(df, x_col, y_col, title):
     plt.ylabel(y_col)
     plt.show()
 
-
+@tool
 def save_results(df, output_path):
     """
     将处理后的数据保存到CSV文件

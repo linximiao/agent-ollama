@@ -9,3 +9,7 @@ models/*.pt
 *.cache
 __pycache__/
 *.pyc
+uploads/
+knowledge/
+vector_store_cache/
+mcp_serve/

@@ -2,10 +2,13 @@ import torch
 from torchvision import transforms as T
 from torchvision.models.efficientnet import efficientnet_v2_m
 from PIL import Image
+from langchain_core.tools import tool
 import json
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 with open('./models/dict.json', 'r', encoding='utf8') as f:
     dic = json.load(f)
+
+@tool
 def image_class(image_path:str) -> str:
     '''
     中草药分类
